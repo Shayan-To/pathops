@@ -19,7 +19,7 @@
 
   <effect needs-document="true" needs-live-preview="false">
     <effects-menu hidden="false">
-      <submenu _name="Debug"/>
+      <submenu _name="Boolean"/>
     </effects-menu>
     <menu-tip>Apply Inkscape path operations to multiple objects.</menu-tip>
     <object-type>path</object-type>

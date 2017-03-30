@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
+
+  <_name>PathOps -3- Exclusion</_name>
+  <id>su-v/org.inkscape.effect.path.exclusion</id>
+
+  <dependency type="executable" location="extensions">pathops.py</dependency>
+  <dependency type="executable" location="extensions">inkex.py</dependency>
+
+  <param name="ink_verb" gui-hidden="true" type="string" _gui-tex="Path operation">SelectionSymDiff</param>
+  <param name="max_count" gui-hidden="true" type="int" min="2" max="999" _gui-text="Max operations per run">500</param>
+  <param name="dry_run" gui-hidden="true" type="boolean" _gui-text="Dry run">false</param>
+
+  <effect needs-document="true" needs-live-preview="false">
+    <effects-menu hidden="false">
+      <submenu _name="Boolean"/>
+    </effects-menu>
+    <menu-tip>Apply Inkscape Exclusion path operation to multiple objects.</menu-tip>
+    <object-type>path</object-type>
+  </effect>
+
+  <script>
+    <command reldir="extensions" interpreter="python">pathops.py</command>
+  </script>
+
+</inkscape-extension>
