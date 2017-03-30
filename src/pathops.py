@@ -35,7 +35,11 @@ from shutil import copy2
 from subprocess import Popen, PIPE
 
 # local library
-import inkex
+# local library
+try:
+    import inkex_local as inkex
+except ImportError:
+    import inkex
 from pathmodifier import zSort as z_sort
 
 
