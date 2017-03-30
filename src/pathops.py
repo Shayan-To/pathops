@@ -220,7 +220,10 @@ class PathOps(inkex.Effect):
 
         # create a copy of current file in $TEMPDIR
         tempfile = os.path.splitext(self.svg_file)[0] + "-pathops.svg"
-        if not self.options.dry_run:
+        if self.options.dry_run:
+            count = 0
+            inkex.debug("Other paths: {}".format(len(other_paths)))
+        else:
             copy2(self.svg_file, tempfile)
 
         # loop through sorted id list, process in chunks
@@ -242,6 +245,8 @@ class PathOps(inkex.Effect):
 
             # process command list
             if self.options.dry_run:
+                count += 1
+                inkex.debug("Chunk[{}] size: {}".format(count, len(chunk)))
                 inkex.debug(cmdlist)
             else:
                 run(cmdlist)
