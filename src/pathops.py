@@ -86,6 +86,18 @@ def is_image(node):
     return node.tag == inkex.addNS('image', 'svg')
 
 
+def is_text(node):
+    """Check node for text tag."""
+    return node.tag == inkex.addNS('text', 'svg')
+
+
+def does_pathops(node):
+    """Check whether node is supported by Inkscape path operations."""
+    return (is_path(node) or
+            is_shape(node) or
+            is_text(node))
+
+
 # ----- list processing helper functions
 
 def chunks(alist, max_len):
@@ -149,11 +161,11 @@ class PathOps(inkex.Effect):
             return None
         else:
             for id_, node in self.selected.items():
-                if is_path(node) or is_shape(node):
+                if does_pathops(node):
                     id_list.append(id_)
                 elif is_group(node):
                     for child in node:
-                        if is_path(child) or is_shape(child):
+                        if does_pathops(node):
                             id_list.append(child.get('id'))
         if len(id_list) < 2:
             inkex.errormsg("This extensions requires paths and shapes.")
