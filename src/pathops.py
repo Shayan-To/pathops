@@ -45,6 +45,9 @@ except ImportError:
 from pathmodifier import zSort as z_sort
 
 
+__version__ = '0.0'
+
+
 # Global "constants"
 SVG_SHAPES = ('rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon')
 
