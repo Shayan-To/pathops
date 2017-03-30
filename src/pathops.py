@@ -29,6 +29,8 @@ You should have received a copy of the GNU General Public License along
 with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """
+# pylint: disable=too-many-ancestors
+
 # standard library
 import os
 from shutil import copy2
@@ -104,6 +106,27 @@ def does_pathops(node):
 
 # ----- list processing helper functions
 
+def recurse_selection(node, id_list):
+    """Recursively process selection, add checked elements to id list."""
+    if is_group(node):
+        for child in node:
+            id_list = recurse_selection(child, id_list)
+    elif does_pathops(node):
+        id_list.append(node.get('id'))
+    return id_list
+
+
+def simple_selection(node, id_list):
+    """Check selection including one group level."""
+    if is_group(node):
+        for child in node:
+            if does_pathops(child):
+                id_list.append(child.get('id'))
+    elif does_pathops(node):
+        id_list.append(node.get('id'))
+    return id_list
+
+
 def chunks(alist, max_len):
     """Chunk a list into sublists of max_len length."""
     for i in range(0, len(alist), max_len):
@@ -160,17 +183,19 @@ class PathOps(inkex.Effect):
     def get_selected_ids(self):
         """Return a list of ids, sorted in z-order."""
         id_list = []
+        recursive_sel = True
         if len(self.selected) < 2:
             inkex.errormsg("This extension requires 2 or more selected items.")
             return None
         else:
-            for id_, node in self.selected.items():
-                if does_pathops(node):
-                    id_list.append(id_)
-                elif is_group(node):
-                    for child in node:
-                        if does_pathops(child):
-                            id_list.append(child.get('id'))
+            if recursive_sel:
+                # unlimited nested levels of groups
+                for node in self.selected.values():
+                    recurse_selection(node, id_list)
+            else:
+                # support one group level only
+                for node in self.selected.values():
+                    simple_selection(node, id_list)
         if len(id_list) < 2:
             inkex.errormsg("This extensions requires paths and shapes.")
             return None
