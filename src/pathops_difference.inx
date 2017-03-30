@@ -8,8 +8,6 @@
   <dependency type="executable" location="extensions">inkex.py</dependency>
 
   <param name="ink_verb" gui-hidden="true" type="string" _gui-text="Path operation">SelectionDiff</param>
-  <param name="max_count" gui-hidden="true" type="int" min="2" max="999" _gui-text="Max operations per run">500</param>
-  <param name="dry_run" gui-hidden="true" type="boolean" _gui-text="Dry run">false</param>
 
   <effect needs-document="true" needs-live-preview="false">
     <effects-menu hidden="false">
