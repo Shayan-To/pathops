@@ -10,7 +10,7 @@ source = \
 	src/pathops_difference.inx \
 	src/pathops_division.inx \
 	src/pathops_exclusion.inx \
-	src/pathops_intersection.inx \
+	src/pathops_intersection.inx
 
 data =
 
