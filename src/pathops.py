@@ -109,23 +109,14 @@ def does_pathops(node):
 
 # ----- list processing helper functions
 
-def recurse_selection(node, id_list):
+def recurse_selection(node, id_list, level=0, current=0):
     """Recursively process selection, add checked elements to id list."""
-    if is_group(node):
-        for child in node:
-            id_list = recurse_selection(child, id_list)
-    elif does_pathops(node):
-        id_list.append(node.get('id'))
-    return id_list
-
-
-def simple_selection(node, id_list):
-    """Check selection including one group level."""
-    if is_group(node):
-        for child in node:
-            if does_pathops(child):
-                id_list.append(child.get('id'))
-    elif does_pathops(node):
+    current += 1
+    if not level or current <= level:
+        if is_group(node):
+            for child in node:
+                id_list = recurse_selection(child, id_list, level, current)
+    if does_pathops(node):
         id_list.append(node.get('id'))
     return id_list
 
@@ -190,19 +181,13 @@ class PathOps(inkex.Effect):
     def get_selected_ids(self):
         """Return a list of ids, sorted in z-order."""
         id_list = []
-        recursive_sel = True
         if len(self.selected) < 2:
             inkex.errormsg("This extension requires 2 or more selected items.")
             return None
         else:
-            if self.options.recursive_sel:
-                # unlimited nested levels of groups
-                for node in self.selected.values():
-                    recurse_selection(node, id_list)
-            else:
-                # support one group level only
-                for node in self.selected.values():
-                    simple_selection(node, id_list)
+            level = 0 if self.options.recursive_sel else 1
+            for node in self.selected.values():
+                recurse_selection(node, id_list, level)
         if len(id_list) < 2:
             inkex.errormsg("This extensions requires paths and shapes.")
             return None
