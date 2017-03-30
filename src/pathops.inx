@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
+
+  <_name>PathOps</_name>
+  <id>su-v/org.inkscape.effect.path.boolean</id>
+
+  <dependency type="executable" location="extensions">pathops.py</dependency>
+  <dependency type="executable" location="extensions">inkex.py</dependency>
+
+  <param name="ink_verb" type="optiongroup" appearance="full" _gui-text="Path operation:">
+    <option value="SelectionDiff">Difference</option>
+    <option value="SelectionIntersect">Intersection</option>
+    <option value="SelectionSymDiff">Exclusion</option>
+    <option value="SelectionDivide">Division</option>
+    <option value="SelectionCutPath">Cut Path</option>
+  </param>
+  <param name="max_count" type="int" min="2" max="999" _gui-text="Max operations per run">500</param>
+  <param name="dry_run" type="boolean" _gui-text="Dry run">false</param>
+
+  <effect needs-document="true" needs-live-preview="false">
+    <effects-menu hidden="false">
+      <submenu _name="Debug"/>
+    </effects-menu>
+    <menu-tip>Apply Inkscape path operations to multiple objects.</menu-tip>
+    <object-type>path</object-type>
+  </effect>
+
+  <script>
+    <command reldir="extensions" interpreter="python">pathops.py</command>
+  </script>
+
+</inkscape-extension>
