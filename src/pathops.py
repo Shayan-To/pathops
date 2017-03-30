@@ -198,7 +198,7 @@ class PathOps(inkex.Effect):
         ink_verb = self.options.ink_verb or "SelectionDiff"
 
         # create a copy of current file in $TEMPDIR
-        tempfile = os.path.splitext(self.svg_file)[0] + "-multidiff.svg"
+        tempfile = os.path.splitext(self.svg_file)[0] + "-pathops.svg"
         if not self.options.dry_run:
             copy2(self.svg_file, tempfile)
 
