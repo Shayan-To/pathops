@@ -175,6 +175,10 @@ class PathOps(inkex.Effect):
                                      action="store", type="int",
                                      dest="max_count", default=500,
                                      help="Max ops per external run")
+        self.OptionParser.add_option("--recursive_sel",
+                                     action="store", type="inkbool",
+                                     dest="recursive_sel", default=True,
+                                     help="Recurse beyond one group level")
         self.OptionParser.add_option("--dry_run",
                                      action="store", type="inkbool",
                                      dest="dry_run", default=False,
@@ -188,7 +192,7 @@ class PathOps(inkex.Effect):
             inkex.errormsg("This extension requires 2 or more selected items.")
             return None
         else:
-            if recursive_sel:
+            if self.options.recursive_sel:
                 # unlimited nested levels of groups
                 for node in self.selected.values():
                     recurse_selection(node, id_list)
