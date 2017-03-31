@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
 
-  <_name>5 Division</_name>
-  <id>su-v/org.inkscape.effect.path.division</id>
+  <_name>7 Combine</_name>
+  <id>su-v/org.inkscape.effect.path.combine</id>
 
   <dependency type="executable" location="extensions">pathops.py</dependency>
   <dependency type="executable" location="extensions">inkex.py</dependency>
 
-  <param name="ink_verb" gui-hidden="true" type="string" _gui-text="Path operation">SelectionDivide</param>
+  <param name="ink_verb" gui-hidden="true" type="string" _gui-text="Path operation">SelectionDiff</param>
 
   <effect needs-document="true" needs-live-preview="false">
     <effects-menu hidden="false">
@@ -15,7 +15,7 @@
         <submenu _name="PathOps"/>
       </submenu>
     </effects-menu>
-    <menu-tip>Apply Inkscape 'Division' path operation to multiple objects.</menu-tip>
+    <menu-tip>Apply Inkscape 'Combine' path operation to multiple objects.</menu-tip>
     <object-type>path</object-type>
   </effect>
 
