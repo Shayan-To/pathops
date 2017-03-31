@@ -25,7 +25,7 @@
       <submenu _name="Generate from Path"/>
     </effects-menu>
     <menu-tip>Apply Inkscape path operations to multiple objects.</menu-tip>
-    <object-type>path</object-type>
+    <object-type>all</object-type>
   </effect>
 
   <script>
