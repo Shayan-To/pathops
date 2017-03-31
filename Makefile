@@ -1,16 +1,19 @@
 NAME = inx-pathops
 
 docs = \
-	COPYING
+	COPYING \
+	README.md
 
 source = \
 	src/pathops.inx \
 	src/pathops.py \
+	src/pathops_combine.inx \
 	src/pathops_cutpath.inx \
 	src/pathops_difference.inx \
 	src/pathops_division.inx \
 	src/pathops_exclusion.inx \
-	src/pathops_intersection.inx
+	src/pathops_intersection.inx \
+	src/pathops_union.inx
 
 data =
 
