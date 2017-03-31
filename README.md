@@ -68,7 +68,7 @@ The extension is developed and maintained in:
 https://gitlab.com/su-v/inx-pathops
 
 A ZIP archive of recent snapshot also be downloaded here:  
-*(Not available yet)*
+https://gitlab.com/su-v/inx-pathops/tags
 
 
 ## License
