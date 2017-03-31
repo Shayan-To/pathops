@@ -163,7 +163,7 @@ class PathOps(inkex.Effect):
         # options
         self.OptionParser.add_option("--ink_verb",
                                      action="store", type="string",
-                                     dest="ink_verb", default="difference",
+                                     dest="ink_verb", default="SelectionDiff",
                                      help="Inkscape verb for path op")
         self.OptionParser.add_option("--max_count",
                                      action="store", type="int",
