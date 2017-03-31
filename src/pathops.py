@@ -45,7 +45,7 @@ except ImportError:
 from pathmodifier import zSort as z_sort
 
 
-__version__ = '0.0'
+__version__ = '0.1'
 
 
 # Global "constants"
