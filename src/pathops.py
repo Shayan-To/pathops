@@ -181,15 +181,17 @@ class PathOps(inkex.Effect):
     def get_selected_ids(self):
         """Return a list of ids, sorted in z-order."""
         id_list = []
-        if len(self.selected) < 2:
-            inkex.errormsg("This extension requires 2 or more selected items.")
-            return None
+        if not len(self.selected):
+            pass
         else:
             level = 0 if self.options.recursive_sel else 1
             for node in self.selected.values():
                 recurse_selection(node, id_list, level)
         if len(id_list) < 2:
-            inkex.errormsg("This extensions requires paths and shapes.")
+            inkex.errormsg("This extension requires at least 2 elements " +
+                           "of type path, shape or text. " +
+                           "The elements can be part of selected groups, " +
+                           "or directly selected.")
             return None
         else:
             return id_list
