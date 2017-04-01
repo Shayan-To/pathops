@@ -35,6 +35,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 import os
 from shutil import copy2
 from subprocess import Popen, PIPE
+import time
 
 # local library
 try:
@@ -48,6 +49,17 @@ __version__ = '0.1'
 
 # Global "constants"
 SVG_SHAPES = ('rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon')
+
+
+# ----- general helper functions
+
+def timed(f):
+    """Minimalistic timer for functions."""
+    # pylint: disable=invalid-name
+    start = time.time()
+    ret = f()
+    elapsed = time.time() - start
+    return ret, elapsed
 
 
 # ----- SVG element helper functions
@@ -228,11 +240,18 @@ class PathOps(inkex.Effect):
             # test iterator for id in document order
             # pylint: disable=using-constant-test
             root = self.document.getroot()
-            if 1:
+            if 0:
                 alist = list(id_list)
-                inkex.debug(list(z_iter(root, alist)))
+                sorted_ids, elapsed = timed(lambda: z_sort(root, alist))
+                inkex.debug(len(sorted_ids))
+                inkex.debug(elapsed)
+            if 0:
+                alist = list(id_list)
+                sorted_ids, elapsed = timed(lambda: list(z_iter(root, alist)))
+                inkex.debug(len(sorted_ids))
+                inkex.debug(elapsed)
 
-            sorted_ids = z_sort(self.document.getroot(), id_list)
+            sorted_ids = list(z_iter(self.document.getroot(), id_list))
             top_path = sorted_ids.pop()
         return (top_path, sorted_ids)
 
