@@ -452,11 +452,18 @@ class PathOps(inkex.Effect):
             show("Total selected elements: {}".format(len(self.selected)))
             show("Total collected ids: {}\n".format(len(self.doc_ids)))
 
+        else:
+            self.collect_ids_1()
+
+        run_test = True
+
+        if run_test:
+
             result, elapsed_effect = timed(lambda: self.effect())
 
             show("\nElapsed time effect(): {}".format(elapsed_effect))
+
         else:
-            self.collect_ids_1()
             self.effect()
 
         if output:
