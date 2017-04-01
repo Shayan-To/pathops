@@ -236,21 +236,6 @@ class PathOps(inkex.Effect):
         sorted_ids = None
         id_list = self.get_selected_ids()
         if id_list is not None:
-
-            # test iterator for id in document order
-            # pylint: disable=using-constant-test
-            root = self.document.getroot()
-            if 0:
-                alist = list(id_list)
-                sorted_ids, elapsed = timed(lambda: z_sort(root, alist))
-                inkex.debug(len(sorted_ids))
-                inkex.debug(elapsed)
-            if 0:
-                alist = list(id_list)
-                sorted_ids, elapsed = timed(lambda: list(z_iter(root, alist)))
-                inkex.debug(len(sorted_ids))
-                inkex.debug(elapsed)
-
             sorted_ids = list(z_iter(self.document.getroot(), id_list))
             top_path = sorted_ids.pop()
         return (top_path, sorted_ids)
