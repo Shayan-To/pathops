@@ -119,26 +119,26 @@ def recurse_selection(node, id_list, level=0, current=0):
     return id_list
 
 
-def z_sort(node, alist):
-    """Return sorted list based on z-index."""
+def z_sort(node, id_list):
+    """Return id list in document order (depth-first traversal)."""
 
     def check(ele):
-        """Check id of ele in alist."""
+        """Check id of ele in id_list."""
         ele_id = ele.get('id')
-        if ele_id in alist:
-            outlist.append(ele_id)
-            alist.remove(ele_id)
+        if ele_id in id_list:
+            ordered.append(ele_id)
+            id_list.remove(ele_id)
             return 1
         return 0
 
-    outlist = []
-    count = len(alist)
+    ordered = []
+    count = len(id_list)
     count -= check(node)
     for child in node.iter():
         count -= check(child)
         if not count:
             break
-    return outlist
+    return ordered
 
 
 def chunks(alist, max_len):
