@@ -133,12 +133,11 @@ def z_sort(node, alist):
         return 0
 
     outlist = []
-    out_len = len(outlist)
-    max_len = len(alist)
-    out_len += check(node)
+    count = len(alist)
+    count -= check(node)
     for child in node.iter():
-        out_len += check(child)
-        if out_len == max_len:
+        count -= check(child)
+        if not count:
             break
     return outlist
 
