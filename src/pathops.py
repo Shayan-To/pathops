@@ -35,6 +35,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 import os
 from shutil import copy2
 from subprocess import Popen, PIPE
+import sys
 import time
 
 # local library
@@ -60,6 +61,11 @@ def timed(f):
     ret = f()
     elapsed = time.time() - start
     return ret, elapsed
+
+
+def dotted(ints):
+    """Pretty-print list of ints."""
+    return ".".join([str(i) for i in ints if i != ""])
 
 
 # ----- SVG element helper functions
@@ -232,26 +238,44 @@ class PathOps(inkex.Effect):
 
     def get_sorted_ids(self):
         """Return top-most path, and a list with z-sorted ids."""
+
+        run_test = True if self.options.dry_run else False
         top_path = None
         sorted_ids = None
-        id_list = self.get_selected_ids()
+
+        if run_test:
+            # time get_selected_ids()
+            inkex.debug("Test 0: get_selected_ids()")
+            selected0, elapsed0 = timed(lambda: self.get_selected_ids())
+            inkex.debug("Selected valid items: {}".format(len(selected0)))
+            inkex.debug("Time elapsed: {}\n".format(elapsed0))
+            # keep one result
+            id_list = selected0
+        else:
+            id_list = self.get_selected_ids()
+
         if id_list is not None:
+            if run_test:
+                root = self.document.getroot()
+                # time z_sort()
+                alist1 = list(id_list)
+                inkex.debug("Test 1: z_sort()")
+                inkex.debug("Selected valid items: {}".format(len(alist1)))
+                ordered1, elapsed1 = timed(lambda: z_sort(root, alist1))
+                inkex.debug("Ordered valid items: {}".format(len(ordered1)))
+                inkex.debug("Time elapsed: {}\n".format(elapsed1))
+                # time z_iter()
+                alist2 = list(id_list)
+                inkex.debug("Test 2: z_iter()")
+                inkex.debug("Selected valid items: {}".format(len(alist2)))
+                ordered2, elapsed2 = timed(lambda: list(z_iter(root, alist2)))
+                inkex.debug("Ordered valid items: {}".format(len(ordered2)))
+                inkex.debug("Time elapsed: {}\n".format(elapsed2))
+                # keep one result
+                sorted_ids = ordered2
+            else:
+                sorted_ids = list(z_iter(self.document.getroot(), id_list))
 
-            # test iterator for id in document order
-            # pylint: disable=using-constant-test
-            root = self.document.getroot()
-            if 0:
-                alist = list(id_list)
-                sorted_ids, elapsed = timed(lambda: z_sort(root, alist))
-                inkex.debug(len(sorted_ids))
-                inkex.debug(elapsed)
-            if 0:
-                alist = list(id_list)
-                sorted_ids, elapsed = timed(lambda: list(z_iter(root, alist)))
-                inkex.debug(len(sorted_ids))
-                inkex.debug(elapsed)
-
-            sorted_ids = list(z_iter(self.document.getroot(), id_list))
             top_path = sorted_ids.pop()
         return (top_path, sorted_ids)
 
@@ -298,7 +322,7 @@ class PathOps(inkex.Effect):
             if self.options.dry_run:
                 count += 1
                 inkex.debug("Chunk[{}] size: {}".format(count, len(chunk)))
-                inkex.debug(cmdlist)
+                # inkex.debug(cmdlist)
             else:
                 run(cmdlist)
 
@@ -309,6 +333,134 @@ class PathOps(inkex.Effect):
             self.document = inkex.etree.parse(tempfile, parser=xmlparser)
             # clean up
             cleanup(tempfile)
+
+    # ----- overload methods from parent Effect() class
+
+    def getselected_0(self):
+        """Collect selected nodes"""
+        for i in self.options.ids:
+            # FIXME: find with xpath expression per id is slow with large
+            # selections
+            path = '//*[@id="%s"]' % i
+            for node in self.document.xpath(path, namespaces=inkex.NSS):
+                self.selected[i] = node
+
+    def getselected_1(self):
+        """Collect selected nodes"""
+        for i in self.options.ids:
+            # NOTE: ElementPath used with find() is a lot faster than XPath
+            node = self.document.getroot().find('.//*[@id="{}"]'.format(i))
+            if node is not None:
+                self.selected[i] = node
+
+    def getdocids_0(self):
+        docIdNodes = self.document.xpath('//@id', namespaces=inkex.NSS)
+        for m in docIdNodes:
+            self.doc_ids[m] = 1
+
+    def collect_ids_0(self):
+        # NOTE: combine collecting ids (selected, doc_ids) into one iteration
+        # through all elements with 'id' attribute to improve performance of
+        # processing large selections.
+        root = self.document.getroot()
+        # iterate through all elements with an 'id' attribute
+        if 'id' in root.attrib:
+            self.doc_ids[root.get('id')] = 1
+        for node in root.iterfind('.//*[@id]'):
+            node_id = node.get('id')
+            self.doc_ids[node_id] = 1
+            if node_id in self.options.ids:
+                self.selected[node_id] = node
+            else:
+                tag = inkex.etree.QName(node).localname
+                # inkex.debug("{}: {}".format(node_id, tag))
+
+    def collect_ids_1(self):
+        # NOTE: combine collecting ids (selected, doc_ids) into one iteration
+        # through all elements in document order to improve performance of
+        # processing large selections.
+        root = self.document.getroot()
+        # iterate through all Elements
+        for node in root.iter(tag=inkex.etree.Element):
+            if 'id' in node.attrib:
+                node_id = node.get('id')
+                self.doc_ids[node_id] = 1
+                if node_id in self.options.ids:
+                    self.selected[node_id] = node
+                else:
+                    tag = inkex.etree.QName(node).localname
+                    # inkex.debug("{}: {}".format(node_id, tag))
+
+    def affect(self, args=sys.argv[1:], output=True):
+        """Affect an SVG document with a callback effect"""
+        self.svg_file = args[-1]
+        inkex.localize()
+
+        # NOTE: all tests have been run with a selection of 5843 paths.
+        run_test = True
+
+        if run_test:
+
+            show = inkex.debug
+
+            show("Python version: {}\n".format(dotted(sys.version_info[:3])))
+
+            result, elapsed_getoptions = timed(lambda: self.getoptions())
+
+            show("Elapsed time getoptions(): {}".format(elapsed_getoptions))
+            show("Total OptionParser ids: {}\n".format(len(self.options.ids)))
+
+        else:
+            self.getoptions(args)
+
+        run_test = self.options.dry_run
+
+        self.parse()
+        self.getposinlayer()
+
+        if run_test:
+
+            result, elapsed_getsel = timed(lambda: self.getselected_0())
+
+            show("Elapsed time getselected_0(): {}".format(elapsed_getsel))
+            show("Total selected elements: {}\n".format(len(self.selected)))
+            self.selected = {}
+
+            result, elapsed_getsel = timed(lambda: self.getselected_1())
+
+            show("Elapsed time getselected_1(): {}".format(elapsed_getsel))
+            show("Total selected elements: {}\n".format(len(self.selected)))
+            self.selected = {}
+
+            result, elapsed_docids = timed(lambda: self.getdocids_0())
+
+            show("Elapsed time getdocids_0(): {}".format(elapsed_docids))
+            show("Total collected ids: {}\n".format(len(self.doc_ids)))
+            self.doc_ids = {}
+
+            result, elapsed_collect = timed(lambda: self.collect_ids_0())
+
+            show("Elapsed time collect_ids_0(): {}".format(elapsed_collect))
+            show("Total selected elements: {}".format(len(self.selected)))
+            show("Total collected ids: {}\n".format(len(self.doc_ids)))
+            self.selected = {}
+            self.doc_ids = {}
+
+            result, elapsed_collect = timed(lambda: self.collect_ids_1())
+
+            show("Elapsed time collect_ids_1(): {}".format(elapsed_collect))
+            show("Total selected elements: {}".format(len(self.selected)))
+            show("Total collected ids: {}\n".format(len(self.doc_ids)))
+
+            result, elapsed_effect = timed(lambda: self.effect())
+
+            show("\nElapsed time effect(): {}".format(elapsed_effect))
+        else:
+            self.collect_ids_1()
+            self.effect()
+
+        if output:
+            self.output()
 
 
 if __name__ == '__main__':
