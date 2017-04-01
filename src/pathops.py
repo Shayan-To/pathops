@@ -35,6 +35,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 import os
 from shutil import copy2
 from subprocess import Popen, PIPE
+import sys
 import time
 
 # local library
@@ -294,6 +295,31 @@ class PathOps(inkex.Effect):
             self.document = inkex.etree.parse(tempfile, parser=xmlparser)
             # clean up
             cleanup(tempfile)
+
+    # ----- fix performance with large selections (overload affect())
+
+    def collect_ids(self):
+        """Iterate all elements, build id dicts (doc_ids, selected)."""
+        for node in self.document.getroot().iter(tag=inkex.etree.Element):
+            if 'id' in node.attrib:
+                node_id = node.get('id')
+                self.doc_ids[node_id] = 1
+                if node_id in self.options.ids:
+                    self.selected[node_id] = node
+
+    def affect(self, args=sys.argv[1:], output=True):
+        """Affect an SVG document with a callback effect"""
+        self.svg_file = args[-1]
+        inkex.localize()
+        self.getoptions(args)
+        self.parse()
+        self.getposinlayer()
+        # self.getselected()
+        # self.getdocids()
+        self.collect_ids()
+        self.effect()
+        if output:
+            self.output()
 
 
 if __name__ == '__main__':
