@@ -37,7 +37,6 @@ from shutil import copy2
 from subprocess import Popen, PIPE
 
 # local library
-# local library
 try:
     import inkex_local as inkex
 except ImportError:
