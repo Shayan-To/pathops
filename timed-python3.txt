@@ -1,0 +1,52 @@
+Python version: 3.5.1
+
+Elapsed time getoptions(): 0.06099700927734375
+Total OptionParser ids: 5843
+
+Elapsed time getselected_0(): 56.05421590805054
+Total selected elements: 5843
+
+Elapsed time getselected_1(): 17.717413187026978
+Total selected elements: 5843
+
+Elapsed time getdocids_0(): 0.01070404052734375
+Total collected ids: 5850
+
+Elapsed time collect_ids_0(): 0.4140949249267578
+Total selected elements: 5843
+Total collected ids: 5850
+
+Elapsed time collect_ids_1(): 0.4056861400604248
+Total selected elements: 5843
+Total collected ids: 5850
+
+Test 0: get_selected_ids()
+Selected valid items: 5843
+Time elapsed: 0.03521394729614258
+
+Test 1: z_sort()
+Selected valid items: 5843
+Ordered valid items: 5843
+Time elapsed: 0.4426000118255615
+
+Test 2: z_iter()
+Selected valid items: 5843
+Ordered valid items: 5843
+Time elapsed: 0.4621729850769043
+
+Other paths: 5842
+Chunk[1] size: 500
+Chunk[2] size: 500
+Chunk[3] size: 500
+Chunk[4] size: 500
+Chunk[5] size: 500
+Chunk[6] size: 500
+Chunk[7] size: 500
+Chunk[8] size: 500
+Chunk[9] size: 500
+Chunk[10] size: 500
+Chunk[11] size: 500
+Chunk[12] size: 342
+
+Elapsed time effect(): 0.9447629451751709
+
