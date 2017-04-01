@@ -121,20 +121,7 @@ def recurse_selection(node, id_list, level=0, current=0):
     return id_list
 
 
-def z_sort(in_node, id_list):
-    """zOrder computation... (from pathmodifier.py)."""
-    sorted_list = []
-    the_id = in_node.get("id")
-    if the_id in id_list:
-        sorted_list.append(the_id)
-    for child in in_node:
-        if len(sorted_list) == len(id_list):
-            break
-        sorted_list += z_sort(child, id_list)
-    return sorted_list
-
-
-def zz_sort(node, alist):
+def z_sort(node, alist):
     """Return sorted list based on z-index."""
 
     def check(ele):
@@ -155,27 +142,6 @@ def zz_sort(node, alist):
         if out_len == max_len:
             break
     return outlist
-
-
-def zzz_index(node, x_id):
-    """Provide z-index key for sorted() - very slow (as expected)."""
-    for i, child in enumerate(node.iter()):
-        if child.get('id') == x_id:
-            return i
-
-
-def zzz_sort(node, alist):
-    """Return sorted list based on z-index."""
-    return sorted(alist, key=lambda x: zzz_index(node, x))
-
-
-def timed(f):
-    """Minimalistic timer for functions."""
-    # pylint: disable=invalid-name
-    start = time.time()
-    ret = f()
-    elapsed = time.time() - start
-    return ret, elapsed
 
 
 def chunks(alist, max_len):
@@ -259,27 +225,7 @@ class PathOps(inkex.Effect):
         sorted_ids = None
         id_list = self.get_selected_ids()
         if id_list is not None:
-
-            # test timed sorting
-            # pylint: disable=using-constant-test
-            root = self.document.getroot()
-            if 0:
-                alist = list(id_list)
-                sorted_ids, elapsed = timed(lambda: z_sort(root, alist))
-                inkex.debug(len(sorted_ids))
-                inkex.debug(elapsed)
-            if 0:
-                alist = list(id_list)
-                sorted_ids, elapsed = timed(lambda: zz_sort(root, alist))
-                inkex.debug(len(sorted_ids))
-                inkex.debug(elapsed)
-            if 0:
-                alist = list(id_list)
-                sorted_ids, elapsed = timed(lambda: zzz_sort(root, alist))
-                inkex.debug(len(sorted_ids))
-                inkex.debug(elapsed)
-
-            sorted_ids = zz_sort(self.document.getroot(), id_list)
+            sorted_ids = z_sort(self.document.getroot(), id_list)
             top_path = sorted_ids.pop()
         return (top_path, sorted_ids)
 
