@@ -16,7 +16,7 @@
     <option value="SelectionCutPath">Cut Path</option>
     <option value="SelectionCombine">Combine</option>
   </param>
-  <param name="max_count" type="int" min="2" max="999" _gui-text="Max operations per run">500</param>
+  <param name="max_count" type="int" min="2" max="9999" _gui-text="Max operations per run">500</param>
   <param name="recursive_sel" type="boolean" _gui-text="Recurse into groups" _gui-description="If unchecked, only direct children of top-level groups in the selection will be processed for inclusion.">true</param>
   <param name="dry_run" type="boolean" _gui-text="Dry run">false</param>
 
