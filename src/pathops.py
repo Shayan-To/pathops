@@ -121,24 +121,26 @@ def recurse_selection(node, id_list, level=0, current=0):
 
 def z_sort(node, id_list):
     """Return id list in document order (depth-first traversal)."""
-
-    def check(ele):
-        """Check id of ele in id_list."""
-        ele_id = ele.get('id')
-        if ele_id in id_list:
-            ordered.append(ele_id)
-            id_list.remove(ele_id)
-            return 1
-        return 0
-
     ordered = []
     count = len(id_list)
-    count -= check(node)
-    for child in node.iter():
-        count -= check(child)
-        if not count:
-            break
+    for element in node.iter():
+        element_id = element.get('id')
+        if element_id is not None and element_id in id_list:
+            id_list.remove(element_id)
+            ordered.append(element_id)
+            count -= 1
+            if not count:
+                break
     return ordered
+
+
+def z_iter(node, id_list):
+    """Return iterator over ids in document order (depth-first traversal)."""
+    for element in node.iter():
+        element_id = element.get('id')
+        if element_id is not None and element_id in id_list:
+            id_list.remove(element_id)
+            yield element_id
 
 
 def chunks(alist, max_len):
@@ -222,6 +224,14 @@ class PathOps(inkex.Effect):
         sorted_ids = None
         id_list = self.get_selected_ids()
         if id_list is not None:
+
+            # test iterator for id in document order
+            # pylint: disable=using-constant-test
+            root = self.document.getroot()
+            if 1:
+                alist = list(id_list)
+                inkex.debug(list(z_iter(root, alist)))
+
             sorted_ids = z_sort(self.document.getroot(), id_list)
             top_path = sorted_ids.pop()
         return (top_path, sorted_ids)
