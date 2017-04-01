@@ -35,7 +35,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 import os
 from shutil import copy2
 from subprocess import Popen, PIPE
-import sys
 import time
 
 # local library
@@ -178,6 +177,28 @@ def run(cmd_format, stdin_str=None, verbose=False):
         inkex.errormsg(err)
 
 
+def run_pathops(svgfile, top_path, id_list, ink_verb, dry_run=False):
+    """Run path ops on a single chunk of other_paths."""
+    # build list with command line arguments
+    cmdlist = []
+    cmdlist.append("inkscape")
+    for node_id in id_list:
+        cmdlist.append("--select=" + top_path)
+        cmdlist.append("--verb=EditDuplicate")
+        cmdlist.append("--select=" + node_id)
+        cmdlist.append("--verb=" + ink_verb)
+        cmdlist.append("--verb=EditDeselect")
+    cmdlist.append("--verb=FileSave")
+    cmdlist.append("--verb=FileQuit")
+    cmdlist.append("-f")
+    cmdlist.append(svgfile)
+    # process command list
+    if dry_run:
+        inkex.debug(cmdlist)
+    else:
+        run(cmdlist)
+
+
 def cleanup(tempfile):
     """Clean up tempfile."""
     try:
@@ -200,14 +221,18 @@ class PathOps(inkex.Effect):
                                      action="store", type="string",
                                      dest="ink_verb", default="SelectionDiff",
                                      help="Inkscape verb for path op")
-        self.OptionParser.add_option("--max_count",
+        self.OptionParser.add_option("--max_ops",
                                      action="store", type="int",
-                                     dest="max_count", default=500,
+                                     dest="max_ops", default=500,
                                      help="Max ops per external run")
         self.OptionParser.add_option("--recursive_sel",
                                      action="store", type="inkbool",
                                      dest="recursive_sel", default=True,
                                      help="Recurse beyond one group level")
+        self.OptionParser.add_option("--keep_top",
+                                     action="store", type="inkbool",
+                                     dest="keep_top", default=True,
+                                     help="Keep top element when done")
         self.OptionParser.add_option("--dry_run",
                                      action="store", type="inkbool",
                                      dest="dry_run", default=False,
@@ -241,85 +266,71 @@ class PathOps(inkex.Effect):
             top_path = sorted_ids.pop()
         return (top_path, sorted_ids)
 
-    def effect(self):
-        """Main entry point to process current document."""
-
-        # create a list of ids to process
-        top_path, other_paths = self.get_sorted_ids()
-
-        # return early if selection is not supported
-        if top_path is None or other_paths is None:
-            return
-
-        # options
-        max_count = self.options.max_count or 500
+    def loop_pathops(self, top_path, other_paths):
+        """Loop through selected items and run external command(s)."""
+        # init variables
+        count = 0
+        max_ops = self.options.max_ops or 500
         ink_verb = self.options.ink_verb or "SelectionDiff"
-
-        # create a copy of current file in $TEMPDIR
+        dry_run = self.options.dry_run
         tempfile = os.path.splitext(self.svg_file)[0] + "-pathops.svg"
-        if self.options.dry_run:
-            count = 0
-            inkex.debug("Other paths: {}".format(len(other_paths)))
+        # prepare
+        if dry_run:
+            inkex.debug("# Top object id: {}".format(top_path))
+            inkex.debug("# Other objects total: {}".format(len(other_paths)))
         else:
             copy2(self.svg_file, tempfile)
-
         # loop through sorted id list, process in chunks
-        for chunk in chunks(other_paths, max_count):
-
-            # build list with command line arguments
-            cmdlist = []
-            cmdlist.append("inkscape")
-            for child in chunk:
-                cmdlist.append("--select=" + top_path)
-                cmdlist.append("--verb=EditDuplicate")
-                cmdlist.append("--select=" + child)
-                cmdlist.append("--verb=" + ink_verb)
-                cmdlist.append("--verb=EditDeselect")
-            cmdlist.append("--verb=FileSave")
-            cmdlist.append("--verb=FileQuit")
-            cmdlist.append("-f")
-            cmdlist.append(tempfile)
-
-            # process command list
-            if self.options.dry_run:
-                count += 1
-                inkex.debug("Chunk[{}] size: {}".format(count, len(chunk)))
-                inkex.debug(cmdlist)
-            else:
-                run(cmdlist)
-
+        for chunk in chunks(other_paths, max_ops):
+            count += 1
+            if dry_run:
+                inkex.debug("\n# Processing {}. chunk ".format(count) +
+                            "with {} objects ...".format(len(chunk)))
+            run_pathops(tempfile, top_path, chunk, ink_verb, dry_run)
         # finish up
-        if not self.options.dry_run:
+        if dry_run:
+            inkex.debug("\n# {} chunks processed, ".format(count) +
+                        "with {} total objects.".format(len(other_paths)))
+        else:
             # replace current document with content of temp copy
             xmlparser = inkex.etree.XMLParser(huge_tree=True)
             self.document = inkex.etree.parse(tempfile, parser=xmlparser)
+            # optionally delete top-most element when done
+            if not self.options.keep_top:
+                top_node = self.getElementById(top_path)
+                if top_node is not None:
+                    top_node.getparent().remove(top_node)
             # clean up
             cleanup(tempfile)
 
-    # ----- fix performance with large selections (overload affect())
+    def effect(self):
+        """Main entry point to process current document."""
+        # process selection
+        top_path, other_paths = self.get_sorted_ids()
+        if top_path is None or other_paths is None:
+            return
+        else:
+            self.loop_pathops(top_path, other_paths)
 
-    def collect_ids(self):
+    # ----- workaround to fix Effect() performance with large selections
+
+    def collect_ids(self, doc=None):
         """Iterate all elements, build id dicts (doc_ids, selected)."""
-        for node in self.document.getroot().iter(tag=inkex.etree.Element):
+        doc = self.document if doc is None else doc
+        for node in doc.getroot().iter(tag=inkex.etree.Element):
             if 'id' in node.attrib:
                 node_id = node.get('id')
                 self.doc_ids[node_id] = 1
                 if node_id in self.options.ids:
                     self.selected[node_id] = node
 
-    def affect(self, args=sys.argv[1:], output=True):
-        """Affect an SVG document with a callback effect"""
-        self.svg_file = args[-1]
-        inkex.localize()
-        self.getoptions(args)
-        self.parse()
-        self.getposinlayer()
-        # self.getselected()
-        # self.getdocids()
+    def getselected(self):
+        """Overload Effect() method."""
         self.collect_ids()
-        self.effect()
-        if output:
-            self.output()
+
+    def getdocids(self):
+        """Overload Effect() method."""
+        pass
 
 
 if __name__ == '__main__':
