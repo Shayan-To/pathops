@@ -35,7 +35,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 import os
 from shutil import copy2
 from subprocess import Popen, PIPE
-import time
 
 # local library
 # local library
