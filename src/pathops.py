@@ -178,7 +178,7 @@ def run(cmd_format, stdin_str=None, verbose=False):
 
 
 def run_pathops(svgfile, top_path, id_list, ink_verb, dry_run=False):
-    """Run path ops on a single chunk of other_paths."""
+    """Run path ops with top_path on a list of other object ids."""
     # build list with command line arguments
     cmdlist = []
     cmdlist.append("inkscape")
@@ -239,11 +239,13 @@ class PathOps(inkex.Effect):
                                      help="Dry-run without exec")
 
     def get_selected_ids(self):
-        """Return a list of ids, sorted in z-order."""
+        """Return a list of valid ids for inkscape path operations."""
         id_list = []
         if not len(self.selected):
             pass
         else:
+            # level = 0: unlimited recursion into groups
+            # level = 1: process top-level groups only
             level = 0 if self.options.recursive_sel else 1
             for node in self.selected.values():
                 recurse_selection(node, id_list, level)
@@ -257,7 +259,7 @@ class PathOps(inkex.Effect):
             return id_list
 
     def get_sorted_ids(self):
-        """Return top-most path, and a list with z-sorted ids."""
+        """Return id of top-most object, and a list with z-sorted ids."""
         top_path = None
         sorted_ids = None
         id_list = self.get_selected_ids()
