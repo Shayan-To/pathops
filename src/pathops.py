@@ -130,9 +130,10 @@ def recurse_selection(node, id_list, level=0, current=0):
     return id_list
 
 
-def z_sort(node, id_list):
-    """Return id list in document order (depth-first traversal)."""
+def z_sort(node, alist):
+    """Return new list sorted in document order (depth-first traversal)."""
     ordered = []
+    id_list = list(alist)
     count = len(id_list)
     for element in node.iter():
         element_id = element.get('id')
@@ -145,8 +146,9 @@ def z_sort(node, id_list):
     return ordered
 
 
-def z_iter(node, id_list):
+def z_iter(node, alist):
     """Return iterator over ids in document order (depth-first traversal)."""
+    id_list = list(alist)
     for element in node.iter():
         element_id = element.get('id')
         if element_id is not None and element_id in id_list:
