@@ -10,10 +10,9 @@ Copyright (C) 2014  Ryan Lerch (multiple difference)
               2016  Maren Hachmann <marenhachmannATyahoo.com>
                     (refactoring, extend to multibool)
               2017  su_v <suv-sf@users.sf.net>
-                    Rewrite to support applying to larger selection (max_count)
-                    and to improve performance (support one level of grouping,
-                    use zSort from pathmodifier instead of external query),
-                    extend GUI options (dry-run).
+                    Rewrite to support large selections (process in chunks), to
+                    improve performance (support groups, z-sort ids with python
+                    instead of external query), and to extend GUI options.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
