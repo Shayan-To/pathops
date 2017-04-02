@@ -22,7 +22,7 @@ Other graphic elements like clones or bitmap images are silently ignored.
 
 ## Options
 
-### Max Operation per run
+### Max operations per run
 Large selections with a high count of valid objects are supported by
 processing the path operations in chunks. The number of operations to be
 maximally applied per externally spawned command can be configured by
