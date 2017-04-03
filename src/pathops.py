@@ -63,6 +63,25 @@ def timed(f):
 
 # ----- SVG element helper functions
 
+def get_defs(node):
+    """Find <defs> in children of *node*, return first one found."""
+    path = '/svg:svg//svg:defs'
+    try:
+        return node.xpath(path, namespaces=inkex.NSS)[0]
+    except IndexError:
+        return inkex.etree.SubElement(node, inkex.addNS('defs', 'svg'))
+
+
+def is_inkscape_tag(node):
+    """Check whether node is Inkscape selection set (inkscape:tag)."""
+    return node.tag == inkex.addNS('tag', 'inkscape')
+
+
+def is_inkscape_tagref(node):
+    """Check whether node is selection set reference (inkscape:tagref)."""
+    return node.tag == inkex.addNS('tagref', 'inkscape')
+
+
 def is_group(node):
     """Check node for group tag."""
     return node.tag == inkex.addNS('g', 'svg')
@@ -303,6 +322,8 @@ class PathOps(inkex.Effect):
                 top_node = self.getElementById(top_path)
                 if top_node is not None:
                     top_node.getparent().remove(top_node)
+            # purge missing tagrefs (see below)
+            self.check_tagrefs()
             # clean up
             cleanup(tempfile)
 
@@ -314,6 +335,37 @@ class PathOps(inkex.Effect):
             return
         else:
             self.loop_pathops(top_path, other_paths)
+
+    # ----- workaround to avoid crash on quit:
+    # If selection set tagrefs have been deleted as a result of the
+    # extension's modifications of the drawing content, inkscape will
+    # crash when closing the document window later on unless the tagrefs
+    # are checked and cleaned up manually by the extension script.
+
+    # NOTE: crash on reload in the main process (after the extension has
+    # finished) still happens if Selection Sets dialog was actually
+    # opened and used in the current session ... the extension could
+    # create fake (invisible) objects which reuse the ids?
+
+    # TODO: this check probably should be applied in Effect() itself,
+    # instead of relying on workarounds in derived classes that modify
+    # drawing content.
+
+    def check_tagrefs(self):
+        """Check tagrefs for deleted objects."""
+        defs = get_defs(self.document.getroot())
+        for child in defs:
+            if is_inkscape_tag(child):
+                delete_list = []
+                for item in child:
+                    if is_inkscape_tagref(item):
+                        href = item.get(inkex.addNS('href', 'xlink'))[1:]
+                        if self.getElementById(href) is None:
+                            # inkex.debug('Missing tagref: {}'.format(href))
+                            delete_list.append(item)
+                if len(delete_list):
+                    for item in delete_list:
+                        item.getparent().remove(item)
 
     # ----- workaround to fix Effect() performance with large selections
 
