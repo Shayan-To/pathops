@@ -346,6 +346,8 @@ class PathOps(inkex.Effect):
     # finished) still happens if Selection Sets dialog was actually
     # opened and used in the current session ... the extension could
     # create fake (invisible) objects which reuse the ids?
+    # No, fake placeholder elements do not prevent the crash on reload
+    # if the dialog was opened before.
 
     # TODO: this check probably should be applied in Effect() itself,
     # instead of relying on workarounds in derived classes that modify
