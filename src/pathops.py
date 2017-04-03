@@ -354,18 +354,32 @@ class PathOps(inkex.Effect):
     def check_tagrefs(self):
         """Check tagrefs for deleted objects."""
         defs = get_defs(self.document.getroot())
+        mode = 'purge'
         for child in defs:
             if is_inkscape_tag(child):
-                delete_list = []
+                obsolete_list = []
                 for item in child:
                     if is_inkscape_tagref(item):
                         href = item.get(inkex.addNS('href', 'xlink'))[1:]
                         if self.getElementById(href) is None:
                             # inkex.debug('Missing tagref: {}'.format(href))
-                            delete_list.append(item)
-                if len(delete_list):
-                    for item in delete_list:
-                        item.getparent().remove(item)
+                            obsolete_list.append(item)
+                if len(obsolete_list):
+                    if mode == 'purge':
+                        for item in obsolete_list:
+                            item.getparent().remove(item)
+                    elif mode == 'placeholder':
+                        # fails to prevent the crash on quit.  possibly
+                        # the object needs to be created in the same
+                        # parent, but that information is already lost
+                        # ...
+                        for item in obsolete_list:
+                            item_id = item.get('id')
+                            temp = inkex.etree.Element(
+                                inkex.addNS('path', 'svg'))
+                            temp.set('id', item_id)
+                            temp.set('d', 'M 0,0 Z')
+                            self.document.getroot().append(temp)
 
     # ----- workaround to fix Effect() performance with large selections
 
