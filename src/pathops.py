@@ -354,7 +354,7 @@ class PathOps(inkex.Effect):
     def check_tagrefs(self):
         """Check tagrefs for deleted objects."""
         defs = get_defs(self.document.getroot())
-        mode = 'purge'
+        mode = 'placeholder'
         for child in defs:
             if is_inkscape_tag(child):
                 obsolete_list = []
@@ -369,15 +369,11 @@ class PathOps(inkex.Effect):
                         for item in obsolete_list:
                             item.getparent().remove(item)
                     elif mode == 'placeholder':
-                        # fails to prevent the crash on quit.  possibly
-                        # the object needs to be created in the same
-                        # parent, but that information is already lost
-                        # ...
                         for item in obsolete_list:
-                            item_id = item.get('id')
+                            href = item.get(inkex.addNS('href', 'xlink'))[1:]
                             temp = inkex.etree.Element(
                                 inkex.addNS('path', 'svg'))
-                            temp.set('id', item_id)
+                            temp.set('id', href)
                             temp.set('d', 'M 0,0 Z')
                             self.document.getroot().append(temp)
 
