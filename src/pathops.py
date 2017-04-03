@@ -320,12 +320,14 @@ class PathOps(inkex.Effect):
     def collect_ids(self, doc=None):
         """Iterate all elements, build id dicts (doc_ids, selected)."""
         doc = self.document if doc is None else doc
+        id_list = list(self.options.ids)
         for node in doc.getroot().iter(tag=inkex.etree.Element):
             if 'id' in node.attrib:
                 node_id = node.get('id')
                 self.doc_ids[node_id] = 1
-                if node_id in self.options.ids:
+                if node_id in id_list:
                     self.selected[node_id] = node
+                    id_list.remove(node_id)
 
     def getselected(self):
         """Overload Effect() method."""
