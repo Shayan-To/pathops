@@ -323,18 +323,27 @@ class PathOps(inkex.Effect):
                 if top_node is not None:
                     top_node.getparent().remove(top_node)
             # purge missing tagrefs (see below)
-            self.check_tagrefs()
+            self.update_tagrefs()
             # clean up
             cleanup(tempfile)
 
     def effect(self):
         """Main entry point to process current document."""
-        # process selection
-        top_path, other_paths = self.get_sorted_ids()
-        if top_path is None or other_paths is None:
-            return
+        if self.has_tagrefs():
+            # unsafe to use with extensions ...
+            inkex.errormsg("This document uses Inkscape selection sets. " +
+                           "Modifying the content with a PathOps extension " +
+                           "may cause Inkscape to crash on reload or close. " +
+                           "Please delete the selection sets, " +
+                           "save the document under a new name and " +
+                           "try again in a new Inkscape session.")
         else:
-            self.loop_pathops(top_path, other_paths)
+            # process selection
+            top_path, other_paths = self.get_sorted_ids()
+            if top_path is None or other_paths is None:
+                return
+            else:
+                self.loop_pathops(top_path, other_paths)
 
     # ----- workaround to avoid crash on quit
 
@@ -350,35 +359,33 @@ class PathOps(inkex.Effect):
     # No, fake placeholder elements do not prevent the crash on reload
     # if the dialog was opened before.
 
-    # TODO: this check (and the purging of obsolete tagrefs) probably
+    # TODO: these checks (and the purging of obsolete tagrefs) probably
     # should be applied in Effect() itself, instead of relying on
     # workarounds in derived classes that modify drawing content.
 
-    def check_tagrefs(self):
+    def has_tagrefs(self):
+        """Check whether document has selection sets with tagrefs."""
+        defs = get_defs(self.document.getroot())
+        inkscape_tagrefs = defs.findall(
+            "inkscape:tag/inkscape:tagref", namespaces=inkex.NSS)
+        return True if len(inkscape_tagrefs) else False
+
+    def update_tagrefs(self, mode='purge'):
         """Check tagrefs for deleted objects."""
         defs = get_defs(self.document.getroot())
-        mode = 'purge'
-        for child in defs:
-            if is_inkscape_tag(child):
-                obsolete_list = []
-                for item in child:
-                    if is_inkscape_tagref(item):
-                        href = item.get(inkex.addNS('href', 'xlink'))[1:]
-                        if self.getElementById(href) is None:
-                            # inkex.debug('Missing tagref: {}'.format(href))
-                            obsolete_list.append(item)
-                if len(obsolete_list):
+        inkscape_tagrefs = defs.findall(
+            "inkscape:tag/inkscape:tagref", namespaces=inkex.NSS)
+        if len(inkscape_tagrefs):
+            for tagref in inkscape_tagrefs:
+                href = tagref.get(inkex.addNS('href', 'xlink'))[1:]
+                if self.getElementById(href) is None:
                     if mode == 'purge':
-                        for item in obsolete_list:
-                            item.getparent().remove(item)
+                        tagref.getparent().remove(tagref)
                     elif mode == 'placeholder':
-                        for item in obsolete_list:
-                            href = item.get(inkex.addNS('href', 'xlink'))[1:]
-                            temp = inkex.etree.Element(
-                                inkex.addNS('path', 'svg'))
-                            temp.set('id', href)
-                            temp.set('d', 'M 0,0 Z')
-                            self.document.getroot().append(temp)
+                        temp = inkex.etree.Element(inkex.addNS('path', 'svg'))
+                        temp.set('id', href)
+                        temp.set('d', 'M 0,0 Z')
+                        self.document.getroot().append(temp)
 
     # ----- workaround to fix Effect() performance with large selections
 
