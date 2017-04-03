@@ -336,7 +336,8 @@ class PathOps(inkex.Effect):
         else:
             self.loop_pathops(top_path, other_paths)
 
-    # ----- workaround to avoid crash on quit:
+    # ----- workaround to avoid crash on quit
+
     # If selection set tagrefs have been deleted as a result of the
     # extension's modifications of the drawing content, inkscape will
     # crash when closing the document window later on unless the tagrefs
@@ -349,14 +350,14 @@ class PathOps(inkex.Effect):
     # No, fake placeholder elements do not prevent the crash on reload
     # if the dialog was opened before.
 
-    # TODO: this check probably should be applied in Effect() itself,
-    # instead of relying on workarounds in derived classes that modify
-    # drawing content.
+    # TODO: this check (and the purging of obsolete tagrefs) probably
+    # should be applied in Effect() itself, instead of relying on
+    # workarounds in derived classes that modify drawing content.
 
     def check_tagrefs(self):
         """Check tagrefs for deleted objects."""
         defs = get_defs(self.document.getroot())
-        mode = 'placeholder'
+        mode = 'purge'
         for child in defs:
             if is_inkscape_tag(child):
                 obsolete_list = []
