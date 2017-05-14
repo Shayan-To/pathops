@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
 
-  <_name>PathOps</_name>
+  <_name>PathOps Custom</_name>
   <id>su-v/org.inkscape.effect.path.ops</id>
 
   <dependency type="executable" location="extensions">pathops.py</dependency>
