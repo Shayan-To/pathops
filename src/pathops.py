@@ -321,11 +321,11 @@ class PathOps(inkex.Effect):
         """Main entry point to process current document."""
         if self.has_tagrefs():
             # unsafe to use with extensions ...
-            inkex.errormsg("This document uses Inkscape selection sets. " +
-                           "Modifying the content with a PathOps extension " +
-                           "may cause Inkscape to crash on reload or close. " +
-                           "Please delete the selection sets, " +
-                           "save the document under a new name and " +
+            inkex.errormsg("This document uses Inkscape selection sets. "
+                           "Modifying the content with a PathOps extension "
+                           "may cause Inkscape to crash on reload or close. "
+                           "Please delete the selection sets, "
+                           "save the document under a new name and "
                            "try again in a new Inkscape session.")
         else:
             # process selection
