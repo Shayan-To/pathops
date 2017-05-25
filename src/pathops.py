@@ -254,7 +254,7 @@ class PathOps(inkex.Effect):
         """Check properties and modify as needed based on options."""
         if self.options.ink_verb == 'SelectionCutPath':
             sdict = simplestyle.parseStyle(node.get('style'))
-            fill_color = sdict.get('fill')
+            fill_color = sdict.get('fill', '')
             if fill_color == 'none' or fill_color.startswith('url('):
                 fill_color = None
             stroke_color = fill_color or self.options.default_stroke
