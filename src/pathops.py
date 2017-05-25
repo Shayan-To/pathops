@@ -250,16 +250,14 @@ class PathOps(inkex.Effect):
         if not self.options.dry_run:
             node.attrib[prop] = val
 
-    def update_style(self, node, sdict):
-        """Update style attribute with current sdict."""
-        if not self.options.dry_run:
-            node.set('style', simplestyle.formatStyle(sdict))
-
     def check_props(self, node):
         """Check properties and modify as needed based on options."""
         if self.options.ink_verb == 'SelectionCutPath':
             sdict = simplestyle.parseStyle(node.get('style'))
-            stroke_color = self.options.default_stroke
+            fill_color = sdict.get('fill')
+            if fill_color == 'none' or fill_color.startswith('url('):
+                fill_color = None
+            stroke_color = fill_color or self.options.default_stroke
             stroke_width = self.unittouu(self.options.default_stroke_width)
             prop = 'stroke'
             if prop not in sdict or sdict[prop] == 'none':
@@ -269,7 +267,7 @@ class PathOps(inkex.Effect):
             prop = 'stroke-width'
             if prop not in sdict:
                 sdict[prop] = stroke_width
-            self.update_style(node, sdict)
+            self.update_attrib(node, 'style', simplestyle.formatStyle(sdict))
 
     def recurse_selection(self, node, id_list, level=0, current=0):
         """Recursively process selection, add checked elements to id list."""
