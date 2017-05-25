@@ -239,7 +239,7 @@ class PathOps(inkex.Effect):
                                      action="store", type="string",
                                      dest="default_stroke_width",
                                      default="1px",
-                                     help="Default stroke color")
+                                     help="Default stroke width")
         self.OptionParser.add_option("--dry_run",
                                      action="store", type="inkbool",
                                      dest="dry_run", default=False,
@@ -294,9 +294,9 @@ class PathOps(inkex.Effect):
             for node in self.selected.values():
                 self.recurse_selection(node, id_list, level)
         if len(id_list) < 2:
-            inkex.errormsg("This extension requires at least 2 elements " +
-                           "of type path, shape or text. " +
-                           "The elements can be part of selected groups, " +
+            inkex.errormsg("This extension requires at least 2 elements "
+                           "of type path, shape or text. "
+                           "The elements can be part of selected groups, "
                            "or directly selected.")
             return None
         else:
