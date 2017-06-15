@@ -32,7 +32,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 # standard library
 import os
-from shutil import copy2
 from subprocess import Popen, PIPE
 import time
 
@@ -41,6 +40,7 @@ try:
     import inkex_local as inkex
 except ImportError:
     import inkex
+import simplestyle
 
 
 __version__ = '0.3'
@@ -126,18 +126,6 @@ def does_pathops(node):
 
 
 # ----- list processing helper functions
-
-def recurse_selection(node, id_list, level=0, current=0):
-    """Recursively process selection, add checked elements to id list."""
-    current += 1
-    if not level or current <= level:
-        if is_group(node):
-            for child in node:
-                id_list = recurse_selection(child, id_list, level, current)
-    if does_pathops(node):
-        id_list.append(node.get('id'))
-    return id_list
-
 
 def z_sort(node, alist):
     """Return new list sorted in document order (depth-first traversal)."""
@@ -243,10 +231,56 @@ class PathOps(inkex.Effect):
                                      action="store", type="inkbool",
                                      dest="keep_top", default=True,
                                      help="Keep top element when done")
+        self.OptionParser.add_option("--default_stroke",
+                                     action="store", type="string",
+                                     dest="default_stroke", default="#000000",
+                                     help="Default stroke color")
+        self.OptionParser.add_option("--default_stroke_width",
+                                     action="store", type="string",
+                                     dest="default_stroke_width",
+                                     default="1px",
+                                     help="Default stroke width")
         self.OptionParser.add_option("--dry_run",
                                      action="store", type="inkbool",
                                      dest="dry_run", default=False,
                                      help="Dry-run without exec")
+
+    def update_attrib(self, node, prop, val):
+        """Update checked property."""
+        if not self.options.dry_run:
+            node.attrib[prop] = val
+
+    def check_props(self, node):
+        """Check properties and modify as needed based on options."""
+        if self.options.ink_verb == 'SelectionCutPath':
+            sdict = simplestyle.parseStyle(node.get('style'))
+            fill_color = sdict.get('fill', '')
+            if fill_color == 'none' or fill_color.startswith('url('):
+                fill_color = None
+            stroke_color = fill_color or self.options.default_stroke
+            stroke_width = self.unittouu(self.options.default_stroke_width)
+            prop = 'stroke'
+            if prop not in sdict or sdict[prop] == 'none':
+                sdict[prop] = stroke_color
+            if prop in node.attrib and node.attrib[prop] == 'none':
+                self.update_attrib(node, prop, stroke_color)
+            prop = 'stroke-width'
+            if prop not in sdict:
+                sdict[prop] = stroke_width
+            self.update_attrib(node, 'style', simplestyle.formatStyle(sdict))
+
+    def recurse_selection(self, node, id_list, level=0, current=0):
+        """Recursively process selection, add checked elements to id list."""
+        current += 1
+        if not level or current <= level:
+            if is_group(node):
+                for child in node:
+                    id_list = self.recurse_selection(
+                        child, id_list, level, current)
+        if does_pathops(node):
+            self.check_props(node)
+            id_list.append(node.get('id'))
+        return id_list
 
     def get_selected_ids(self):
         """Return a list of valid ids for inkscape path operations."""
@@ -258,11 +292,11 @@ class PathOps(inkex.Effect):
             # level = 1: process top-level groups only
             level = 0 if self.options.recursive_sel else 1
             for node in self.selected.values():
-                recurse_selection(node, id_list, level)
+                self.recurse_selection(node, id_list, level)
         if len(id_list) < 2:
-            inkex.errormsg("This extension requires at least 2 elements " +
-                           "of type path, shape or text. " +
-                           "The elements can be part of selected groups, " +
+            inkex.errormsg("This extension requires at least 2 elements "
+                           "of type path, shape or text. "
+                           "The elements can be part of selected groups, "
                            "or directly selected.")
             return None
         else:
@@ -291,7 +325,8 @@ class PathOps(inkex.Effect):
             inkex.debug("# Top object id: {}".format(top_path))
             inkex.debug("# Other objects total: {}".format(len(other_paths)))
         else:
-            copy2(self.svg_file, tempfile)
+            with open(tempfile, 'wb') as copycat:
+                self.document.write(copycat)
         # loop through sorted id list, process in chunks
         for chunk in chunks(other_paths, max_ops):
             count += 1
