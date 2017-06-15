@@ -43,7 +43,7 @@ except ImportError:
 import simplestyle
 
 
-__version__ = '0.3'
+__version__ = '0.4'
 
 
 # Global "constants"
