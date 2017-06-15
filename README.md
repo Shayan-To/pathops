@@ -65,7 +65,7 @@ and relaunch Inkscape.
 ### The extensions will be available as:
 
 **Extensions > Generate from Path:**
-- PathOps...
+- PathOps Custom...
 
 **Extensions > Generate from Path > PathOps:**
 - 1 Union
