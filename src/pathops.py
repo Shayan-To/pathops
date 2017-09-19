@@ -388,18 +388,28 @@ class PathOps(inkex.Effect):
     # should be applied in Effect() itself, instead of relying on
     # workarounds in derived classes that modify drawing content.
 
+    @staticmethod
+    def get_tagrefs(node):
+        """Find tagrefs in node, return list."""
+        inkscape_tagrefs = []
+        try:
+            inkscape_tagrefs = node.findall(
+                "inkscape:tag/inkscape:tagref", namespaces=inkex.NSS)
+        except TypeError:
+            # fallback for lxml < 2.3.0
+            path = 'inkscape:tag/inkscape:tagref'
+            inkscape_tagrefs = node.xpath(path, namespaces=inkex.NSS)
+        return inkscape_tagrefs
+
     def has_tagrefs(self):
         """Check whether document has selection sets with tagrefs."""
         defs = get_defs(self.document.getroot())
-        inkscape_tagrefs = defs.findall(
-            "inkscape:tag/inkscape:tagref", namespaces=inkex.NSS)
-        return True if len(inkscape_tagrefs) else False
+        return True if len(self.get_tagrefs(defs)) else False
 
     def update_tagrefs(self, mode='purge'):
         """Check tagrefs for deleted objects."""
         defs = get_defs(self.document.getroot())
-        inkscape_tagrefs = defs.findall(
-            "inkscape:tag/inkscape:tagref", namespaces=inkex.NSS)
+        inkscape_tagrefs = self.get_tagrefs(defs)
         if len(inkscape_tagrefs):
             for tagref in inkscape_tagrefs:
                 href = tagref.get(inkex.addNS('href', 'xlink'))[1:]
